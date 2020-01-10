@@ -18,6 +18,8 @@
 #include "roc_sndio/sox_backend.h"
 #endif // ROC_TARGET_SOX
 
+#include "roc_sndio/alsa_backend.h"
+
 namespace roc {
 namespace sndio {
 
@@ -29,6 +31,7 @@ BackendDispatcher::BackendDispatcher()
 #ifdef ROC_TARGET_SOX
     add_backend_(SoxBackend::instance());
 #endif // ROC_TARGET_SOX
+    add_backend_(AlsaBackend::instance());
 }
 
 void BackendDispatcher::set_frame_size(size_t frame_size) {
@@ -92,7 +95,7 @@ BackendDispatcher::select_backend_(const char* driver, const char* inout, int fl
         return backend;
     }
 
-    roc_log(LogError, "no backend fround: driver=%s inout=%s", driver, inout);
+    roc_log(LogError, "no backend found: driver=%s inout=%s", driver, inout);
     return NULL;
 }
 

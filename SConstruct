@@ -212,6 +212,11 @@ AddOption('--disable-libunwind',
           action='store_true',
           help='disable libunwind support required for printing backtrace')
 
+AddOption('--disable-alsa',
+          dest='disable_alsa',
+          action='store_true',
+          help='disable Alsa support in tools')
+
 AddOption('--disable-pulseaudio',
           dest='disable_pulseaudio',
           action='store_true',
@@ -654,10 +659,17 @@ else:
                 'target_sox',
             ])
 
-        if platform in ['linux'] and not GetOption('disable_pulseaudio'):
-            env.Append(ROC_TARGETS=[
-                'target_pulseaudio',
-            ])
+        if platform in ['linux']:
+            if not GetOption('disable_pulseaudio'):
+                env.Append(ROC_TARGETS=[
+                    'target_pulseaudio',
+                ])
+
+            if not GetOption('disable_alsa'):
+                env.Append(ROC_TARGETS=[
+                    'target_alsa',
+                ])
+        
 
 env.Append(CXXFLAGS=[])
 env.Append(CPPDEFINES=[])
@@ -785,6 +797,15 @@ if 'openfec' in system_dependecies:
             "openfec has no LDPC-Staircase codec support (OF_USE_LDPC_STAIRCASE_CODEC)")
 
     env = conf.Finish()
+
+if 'alsa' in system_dependecies:
+    conf = Configure(tool_env, custom_tests=env.CustomTests)
+
+    if not conf.CheckLibWithHeaderExt(
+            'libasound', 'alsa/asoundlib.h', 'C', run=not crosscompile):
+        env.Die("libasound not found (see 'config.log' for details)")
+    
+    tool_env = conf.Finish()
 
 if 'pulseaudio' in system_dependecies:
     conf = Configure(tool_env, custom_tests=env.CustomTests)
